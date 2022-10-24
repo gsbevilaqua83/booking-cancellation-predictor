@@ -1,6 +1,8 @@
 # booking-cancellation-predictor
 
-## CHOOSING THE MODEL:
+This project extends the modeling and analisys within the following notebook by Nitesh Yadav: https://www.kaggle.com/code/niteshyadav3103/hotel-booking-prediction-99-5-acc
+
+## Evaluating and Choosing a Model:
 
 ### Model Options:
 ```
@@ -49,7 +51,7 @@ The resulting plots can be found below:
 We can see from the accuracy, recall, precision and f1 plots that the Cat Boost Classifier is likely the most robust model. It only slightly falls behind XgBoost on precision while also having very low training and predicting times.
 Therefore the Cat Boost Classifier was the model chosen for this project.
 
-## SETUP:
+## Setup:
 
 First clone the repository:
 ```
@@ -77,7 +79,7 @@ http://localhost:5001
 ```
 
 
-## USAGE:
+## Training the Model:
 
 At the start of the containers we'll have no models to run. So first thing to do is to train a model. We'll do this by accessing the api container with docker and running the train script inside of it.
 
@@ -115,7 +117,9 @@ And use it as input of the set_model.py script:
 python set_model.py [run_id]
 ```
 
-### Option 1: CURL
+## Getting Predictions:
+
+#### Option 1: CURL
 
 Obs: I'm using curl on the following examples, however it should work with any tool that can make POST requests.
 
@@ -151,7 +155,7 @@ And so the predictions array will have multiple elements:
 {"predictions":[0,0]}
 ```
 
-### Option 2: Internet Browser
+#### Option 2: Internet Browser
 
 You can also use the browser to access the api by goind to the url: *http://127.0.0.1:5001* or *http://localhost:5001*
 There you'll find a textarea input where you can paste a json to request predictions:
