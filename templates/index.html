@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Hotel Booking Cancellation Predictor</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    </head>
+    <body>
+        <h1>Hotel Booking Cancellation Predictor</h1>
+        <form method="POST" class="pred-input-form">
+            <div class="pred-input-field">
+                <label>JSON Input:</label>
+                <textarea id="input" name="input-form" placeholder='{"hotel":1 .... "total_of_special_requests":0}' style="height:200px"></textarea>
+            </div>
+            <div class="sbm-button">
+                <button type="submit"> Submit Request </button>
+            </div>
+            {% block content %}
+                {% if prediction != '' %}
+                    <div class="prediction-div">
+                        {% for i in range(prediction|length) %}
+                            {% if prediction[i] %}
+                                <p class="true-pred"> Prediction {{i}}: Will Cancel</p>
+                            {% else %}
+                                <p class="false-pred"> Prediction {{i}}: Will Not Cancel</p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if error != '' %}
+                    <div class="prediction-div">
+                        <p> Error: {{error}}</p>
+                    </div>
+                {% endif %}
+            {% endblock content %}
+        </form>
+    </body>
+</html>
