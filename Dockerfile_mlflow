@@ -1,0 +1,7 @@
+FROM python:3.10-slim
+
+WORKDIR /mnt
+
+COPY requirements_mlflow.txt requirements_mlflow.txt
+
+RUN pip install --no-cache-dir -r requirements_mlflow.txt

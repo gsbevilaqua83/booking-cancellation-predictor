@@ -1,0 +1,29 @@
+version: '1'
+services:
+    mlflow:
+        volumes:
+            - .:/mnt
+        restart: always
+        build:
+            dockerfile: Dockerfile_mlflow
+        container_name: mlflow_server
+        expose:
+            - "5000"
+        ports:
+            - "5000:5000"
+        environment:
+            - MLFLOW_TRACKING_URI="http://localhost:5000"
+        command: mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./artifacts --host 0.0.0.0
+    api:
+        volumes:
+            - .:/mnt
+        build:
+            dockerfile: Dockerfile
+        container_name: model_api
+        expose:
+            - "5001"
+        ports:
+            - "5001:5001"
+        environment:
+            - GIT_PYTHON_REFRESH=quiet
+        command: gunicorn -w 4 --threads 4 -b 0.0.0.0:5001 app:app
