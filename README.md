@@ -150,3 +150,22 @@ And so the predictions array will have multiple elements:
 ```
 {"predictions":[0,0]}
 ```
+
+### Option 2: Internet Browser
+
+You can also use the browser to access the api by goind to the url: *http://127.0.0.1:5001* or *http://localhost:5001*
+There you'll find a textarea input where you can paste a json to request predictions:
+![api1](https://user-images.githubusercontent.com/68133293/197453957-b1d7a75f-f078-4bf0-8e83-947d2a8254c9.png)
+
+And the predictions will appear at the bottom:
+![api2](https://user-images.githubusercontent.com/68133293/197454003-f551853e-a6d1-4ec6-8147-9efc08cb0592.png)
+
+## Unit Tests
+
+To run the tests access the api container as it was done at the beggining of the *Usage* section.
+
+And then simply run:
+```
+pytest
+```
+It will run both the tests for api as for the train script.
