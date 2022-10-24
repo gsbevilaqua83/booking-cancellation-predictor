@@ -20,6 +20,7 @@
             {% block content %}
                 {% if prediction != '' %}
                     <div class="prediction-div">
+                        <h2>Predictions:</h2>
                         {% for i in range(prediction|length) %}
                             {% if prediction[i] %}
                                 <p class="true-pred"> Prediction {{i}}: Will Cancel</p>
@@ -31,8 +32,9 @@
                 {% endif %}
 
                 {% if error != '' %}
-                    <div class="prediction-div">
-                        <p> Error: {{error}}</p>
+                    <div class="error-div">
+                        <p class="error-label">Error:</p>
+                        <p>{{error}}</p>
                     </div>
                 {% endif %}
             {% endblock content %}
