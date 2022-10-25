@@ -163,7 +163,7 @@ if __name__ == "__main__":
         "--data_split_seed",
         nargs=1,
         type=int,  # any type/callable can be used here
-        default=42,
+        default=[42],
     )
     # parse the command line
     args = cli.parse_args()

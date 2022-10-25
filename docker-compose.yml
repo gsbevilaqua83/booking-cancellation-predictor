@@ -26,6 +26,4 @@ services:
             - "5001:5001"
         environment:
             - GIT_PYTHON_REFRESH=quiet
-        depends_on: 
-            - mlflow
-        command: ["./wait-for-it.sh", "mlflow:5000", "--", "gunicorn", "-w", "4", "--threads", "4", "-b", "0.0.0.0:5001", "app:app"]
+        command: gunicorn -w 4 --threads 4 -b 0.0.0.0:5001 app:app
