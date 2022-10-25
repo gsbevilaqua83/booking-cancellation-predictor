@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     # gathering and processing data
     X, y = preprocess()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.30, random_state=args.data_split_seed)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.30, random_state=args.data_split_seed[0])
 
     for iter in tqdm(args.iterations):
         for depth in args.depth:
@@ -186,7 +186,7 @@ if __name__ == "__main__":
                     mlflow.log_param("iterations", iter)
                     mlflow.log_param("depth", depth)
                     mlflow.log_param("random_strength", rs)
-                    mlflow.log_param("data_split_seed", args.data_split_seed)
+                    mlflow.log_param("data_split_seed", args.data_split_seed[0])
                     mlflow.log_metric("acc", acc)
                     mlflow.log_metric("recall", recall)
                     mlflow.log_metric("prec", prec)
