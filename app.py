@@ -80,8 +80,14 @@ def predict():
             if type(data) is not list:
                 data = [data]
 
+            if data == []:
+                return jsonify({"error": "Cannot predict on empty list."})
+
             features_dict = {}
             for elem in data:
+                if type(elem) is not dict:
+                    return jsonify({"error": f"Cannot predict on list of {type(elem)}."})
+
                 input_features = set(elem.keys())
                 if features != input_features:
                     return jsonify({"error": "Feature names mismatch"})
@@ -119,8 +125,14 @@ def predict():
             if type(data) is not list:
                 data = [data]
 
+            if data == []:
+                return render_template('index.html', prediction='', error="Cannot predict on empty list.")
+
             features_dict = {}
             for elem in data:
+                if type(elem) is not dict:
+                    return render_template('index.html', prediction='', error=f"Cannot predict on list of {type(elem)}.")
+
                 input_features = set(elem.keys())
                 if features != input_features:
                     return render_template('index.html', prediction='', error="Feature names mismatch")

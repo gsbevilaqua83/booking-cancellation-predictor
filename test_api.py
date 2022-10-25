@@ -68,5 +68,33 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(len(r.json["predictions"]), 2)
 
 
+    def test_9_invalid_input_empty_list(self):
+        client = self.app.test_client()
+        r = client.post(self.index_endpoint, json='[]')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json, {"error": "Cannot predict on empty list."})
+
+
+    def test_10_invalid_input_list_of_int(self):
+        client = self.app.test_client()
+        r = client.post(self.index_endpoint, json='[1, 2]')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json, {"error": "Cannot predict on list of <class 'int'>."})
+
+
+    def test_11_invalid_input_list_of_int(self):
+        client = self.app.test_client()
+        r = client.post(self.index_endpoint, json='[0.0, 1.0]')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json, {"error": "Cannot predict on list of <class 'float'>."})
+
+
+    def test_12_invalid_input_list_of_int(self):
+        client = self.app.test_client()
+        r = client.post(self.index_endpoint, json='["test"]')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json, {"error": "Cannot predict on list of <class 'str'>."})
+
+
 if __name__ == "__main__":
     unittest.main()
