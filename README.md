@@ -48,7 +48,7 @@ The resulting plots can be found below:
 ![predict_time_averages](https://user-images.githubusercontent.com/68133293/197449076-0e5db9f3-a4f9-497c-8698-1449c48f5dcb.png)
 ![predict_time_distributions](https://user-images.githubusercontent.com/68133293/197449078-efde0a66-7584-4be5-965c-58dcf5b5ba09.png)
 
-We can see from the accuracy, recall, precision and f1 plots that the Cat Boost Classifier is likely the most robust model. It only slightly falls behind XgBoost on precision while also having very low training and predicting times.
+We can see from the accuracy, recall, precision and f1 plots that the Cat Boost Classifier is likely the most robust model. It only slightly falls behind XgBoost on precision while also having very low training and prediction times.
 Therefore the Cat Boost Classifier was the model chosen for this project.
 
 ## Setup:
@@ -70,7 +70,7 @@ Run docker compose to start the API container and the mlflow container:
 docker compose up
 ```
 
-The mlflow server will be running at port 5000 and the API server be running at port 5001.
+The mlflow server will be running at port 5000 and the API server at port 5001.
 Both can be accessed through an internet browser at:
 ```
 http://localhost:5000
@@ -100,7 +100,7 @@ Then run the training script:
 python train.py
 ```
 
-By default the model will be trained with 100 iterations and the depth and random_strength parameters of CatBoostClassifier will be set to None. You can pass a list of values for each of those parameters and the train script will run for all the combinations of them:
+By default the model will be trained with 100 iterations and the depth and random_strength parameters of CatBoostClassifier will be set to None. You can pass a list of values for each of those parameters and the train script will run for all combinations of them:
 ```
 python train.py --iterations 100 200 300 --depth 6 7 8 9 10 --random_strength 0 0.01 0.1 1
 ```
@@ -112,9 +112,9 @@ python train.py --iterations 100 200 300 --depth 6 7 8 9 10 --random_strength 0 
 ```
 *42* is the default value for the seed.
 
-The model will automatically be logged to MLFlow with the 4 parameters metioned above and the following metrics: accuracy, recall, precision, f1-score and roc auc score.
+The model will automatically be logged to MLFlow with the 4 parameters metioned above and the following metrics: accuracy, recall, precision, f1-score and roc's auc.
 
-The API will only use models set to production. More specifically it will use the latest version of the *booking_cancellation-cat_boost_classifier* model the has been set to "Production" on MLFlow. The *booking_cancellation-cat_boost_classifier* model is automatically created at the initialization of the API and you now only need to regiter one of the training runs to it and set that version to "Production".
+The API will only use models set to production. More specifically it will use the latest version of the *booking_cancellation-cat_boost_classifier* model that has been set to "Production" on MLFlow. The *booking_cancellation-cat_boost_classifier* model is automatically created at the initialization of the API and you now only need to register one of the training runs and set that version to "Production".
 
 Access the MLFlow ui by going to *http://localhost:5000* and select the experiment you wish to use on the API:
 ![mlflow1](https://user-images.githubusercontent.com/68133293/197670181-b301a0f9-fd85-41ed-be39-a4920a5cd580.png)
@@ -133,7 +133,7 @@ And then set the model to "Production":
 
 And that will be the model used by the API.
 
-By using the MLFlow Registry we can have a better model management and assure that only models that are ready will be used by the API
+By using the MLFlow Registry we can have a better model management and assure that only models that are ready will be used by the API.
 
 ## Getting Predictions:
 
@@ -153,7 +153,7 @@ A full example can be seen below:
 curl -X POST -H "Content-Type: application/json" -d '{"hotel":1,"meal":0,"market_segment":2,"distribution_channel":2,"reserved_room_type":2,"deposit_type":0,"customer_type":0,"year":3,"month":7,"day":6,"lead_time":4.31748811353631,"arrival_date_week_number":3.332204510175204,"arrival_date_day_of_month":1.6094379124341003,"stays_in_weekend_nights":0,"stays_in_week_nights":2,"adults":2,"children":0.0,"babies":0,"is_repeated_guest":0,"previous_cancellations":0,"previous_bookings_not_canceled":0,"agent":2.302585092994046,"company":0.0,"adr":5.017279836814924,"required_car_parking_spaces":0,"total_of_special_requests":0}' "http://127.0.0.1:5001"
 ```
 
-On Windows you may need to scape the double quotes on the json:
+On Windows you may need to escape the double quotes on the json:
 ```
 curl -X POST -H "Content-Type: application/json" -d "{\"hotel\":1,\"meal\":0,\"market_segment\":2,\"distribution_channel\":2,\"reserved_room_type\":2,\"deposit_type\":0,\"customer_type\":0,\"year\":3,\"month\":7,\"day\":6,\"lead_time\":4.31748811353631,\"arrival_date_week_number\":3.332204510175204,\"arrival_date_day_of_month\":1.6094379124341003,\"stays_in_weekend_nights\":0,\"stays_in_week_nights\":2,\"adults\":2,\"children\":0.0,\"babies\":0,\"is_repeated_guest\":0,\"previous_cancellations\":0,\"previous_bookings_not_canceled\":0,\"agent\":2.302585092994046,\"company\":0.0,\"adr\":5.017279836814924,\"required_car_parking_spaces\":0,\"total_of_special_requests\":0}" "http://127.0.0.1:5001"
 ```
@@ -184,7 +184,7 @@ And the predictions will appear at the bottom:
 
 ## Unit Tests
 
-To run the tests access the api container as it was done at the beggining of the *Training the Model* section. You will also need to have trained and added a model to production as well otherwise some of the api tests will surely fail.
+To run the tests access the api container as it was done at the beggining of the *Training the Model* section. You will also need to have trained and added a model to production as well, otherwise some of the api tests will surely fail.
 
 And then simply run:
 ```
