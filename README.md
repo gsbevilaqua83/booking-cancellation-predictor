@@ -63,6 +63,8 @@ Change to the root directory:
 cd booking-cancellation-predictor
 ```
 
+OBS: On linux machines, before running docker you may need to add the *booking-cancellation-predictor* directory to file sharing so that the folder can be bind mounted into the containers. On Docker Desktop go to Settings > Resources > File Sharing, add that directory and apply the changes.
+
 Run docker compose to start the API container and the mlflow container:
 ```
 docker compose up
