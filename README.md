@@ -63,12 +63,12 @@ Change to the root directory:
 cd booking-cancellation-predictor
 ```
 
-Run docker compose to start the api container and the mlflow container:
+Run docker compose to start the API container and the mlflow container:
 ```
 docker compose up
 ```
 
-The mlflow server will be running at port 5000 and the api server be running at port 5001.
+The mlflow server will be running at port 5000 and the API server be running at port 5001.
 Both can be accessed through an internet browser at:
 ```
 http://localhost:5000
@@ -81,14 +81,14 @@ http://localhost:5001
 
 ## Training the Model:
 
-At the start of the containers we'll have no models to run. So first thing to do is to train a model. We'll do this by accessing the api container with docker and running the train script inside of it.
+At the start of the containers we'll have no models to run. So first thing to do is to train a model. We'll do this by accessing the API container with docker and running the train script inside of it.
 
 Check the id of the *booking-cancellation-predictor-api* container:
 ```
 docker ps
 ```
 
-Access the api container:
+Access the API container:
 ```
 docker exec -it [container_id] /bin/bash
 ```
@@ -98,24 +98,40 @@ Then run the training script:
 python train.py
 ```
 
-By default the model will be trained with 100 iterations. You can set number of iterations with the first parameter of the train.py script and the second parameter will define the seed of the data split between train and test sets:
+By default the model will be trained with 100 iterations and the depth and random_strength parameters of CatBoostClassifier will be set to None. You can pass a list of values for each of those parameters and the train script will run for all the combinations of them:
 ```
-python train.py [iterations] [data_split_seed]
+python train.py --iterations 100 200 300 --depth 6 7 8 9 10 --random_strength 0 0.01 0.1 1
 ```
+In the end this command will do *3 x 5 x 4 = 60* training runs for the model and will generate 60 experiments on MLFlow.
 
-The model will be automatically logged to MLFlow with the following metrics: accuracy, recall, precision, f1-score and roc auc score.
-The first time you train a model it will also automatically be set to be used by the api. But you can use the set_model.py script to set another model to be used.
-
-Access the MLFLow ui by going to *http://localhost:5000* and find the desired model:
-![mlflow1](https://user-images.githubusercontent.com/68133293/197451728-99ed548d-01c5-49eb-85b5-807bbf2747f8.png)
-
-Copy the Run ID of the model:
-![mlflow2](https://user-images.githubusercontent.com/68133293/197451773-f65de727-28f4-49c9-a9d9-aaefe6498cd8.png)
-
-And use it as input of the set_model.py script:
+You can also set a seed for train/test data split with --data_split_seed:
 ```
-python set_model.py [run_id]
+python train.py --iterations 100 200 300 --depth 6 7 8 9 10 --random_strength 0 0.01 0.1 1 --data_split_seed 42
 ```
+*42* is the default value for the seed.
+
+The model will automatically be logged to MLFlow with the 4 parameters metioned above and the following metrics: accuracy, recall, precision, f1-score and roc auc score.
+
+The API will only use models set to production. More specifically it will use the latest version of the *booking_cancellation-cat_boost_classifier* model the has been set to "Production" on MLFlow. The *booking_cancellation-cat_boost_classifier* model is automatically created at the initialization of the API and you now only need to regiter one of the training runs to it and set that version to "Production".
+
+Access the MLFlow ui by going to *http://localhost:5000* and select the experiment you wish to use on the API:
+![mlflow1](https://user-images.githubusercontent.com/68133293/197670181-b301a0f9-fd85-41ed-be39-a4920a5cd580.png)
+
+Click the blue button to register the model:
+![mlflow2](https://user-images.githubusercontent.com/68133293/197670588-869c08bd-7fca-4cba-b563-aeffa84c42f3.png)
+
+Then select the *booking_cancellation-cat_boost_classifier* model:
+![mlflow3](https://user-images.githubusercontent.com/68133293/197670716-a51ef61b-57ce-4021-89b4-a34b5c046cec.png)
+
+Now go to the Models section of MLFlow and click the latest version area:
+![mlflow4](https://user-images.githubusercontent.com/68133293/197670811-3b7100b7-9f24-4544-ba9d-4746987c8e59.png)
+
+And then set the model to "Production":
+![mlflow5](https://user-images.githubusercontent.com/68133293/197670864-a47ebc3e-f061-4ec8-afab-d718cc36392e.png)
+
+And that will be the model used by the API.
+
+By using the MLFlow Registry we can have a better model management and assure that only models that are ready will be used by the API
 
 ## Getting Predictions:
 
@@ -123,7 +139,7 @@ python set_model.py [run_id]
 
 Obs: I'm using curl on the following examples, however it should work with any tool that can make POST requests.
 
-The url of the api is *http://127.0.0.1:5001* and the curl command needs to have the header parameter indicating that the data is json.
+The url of the API is *http://127.0.0.1:5001* and the curl command needs to have the header parameter indicating that the data is json.
 
 The proper command format can be seen below:
 ```
@@ -159,14 +175,14 @@ And so the predictions array will have multiple elements:
 
 You can also use the browser to access the api by goind to the url: *http://127.0.0.1:5001* or *http://localhost:5001*
 There you'll find a textarea input where you can paste a json to request predictions:
-![api1](https://user-images.githubusercontent.com/68133293/197453957-b1d7a75f-f078-4bf0-8e83-947d2a8254c9.png)
+![api1](https://user-images.githubusercontent.com/68133293/197666935-71b165f4-a30d-4b76-b26e-ae32e7cd43ea.png)
 
 And the predictions will appear at the bottom:
-![api2](https://user-images.githubusercontent.com/68133293/197454003-f551853e-a6d1-4ec6-8147-9efc08cb0592.png)
+![api2](https://user-images.githubusercontent.com/68133293/197666996-42570f3b-043c-449c-91a3-c19a4233806d.png)
 
 ## Unit Tests
 
-To run the tests access the api container as it was done at the beggining of the *Usage* section.
+To run the tests access the api container as it was done at the beggining of the *Training the Model* section. You will also need to have trained and added a model to production as well otherwise some of the api tests will surely fail.
 
 And then simply run:
 ```
