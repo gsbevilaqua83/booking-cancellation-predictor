@@ -11,18 +11,14 @@ app = Flask(__name__)
 
 mlflow.set_tracking_uri("http://host.docker.internal:5000")
 
-try:
-    with open('current_model', 'r') as f:
-        run_id = f.readline().rstrip()
-    model = mlflow.pyfunc.load_model(f"runs:/{run_id}/model")
-except FileNotFoundError:
-    f = open('current_model', 'w')
-    f.close()
-    run_id = ''
-    model = None
-except Exception:
-    run_id = ''
-    model = None
+model_name = "booking_cancellation-cat_boost_classifier"
+
+# checking and creating model in mlflow
+mlclient = mlflow.MlflowClient()
+if model_name not in set([model.name for model in mlclient.list_registered_models()]):
+    mlclient.create_registered_model(model_name)
+
+model = None
 
 # model features
 features = set(["hotel", "meal", "market_segment", "distribution_channel",
@@ -34,42 +30,37 @@ features = set(["hotel", "meal", "market_segment", "distribution_channel",
                 "agent", "company", "adr", "required_car_parking_spaces", "total_of_special_requests"])
 
 
-def set_model(id):
-    '''
-        Sets a new model(run id) for the api to use if that run id is a valid one
-
-        Parameters:
-            id (str): run id to be set
-    '''
-    global run_id, model
-
-    try:
-        run_id = id
-        model = mlflow.pyfunc.load_model(f"runs:/{run_id}/model")
-    except:
-        run_id = ''
-        model = None
-
-
 def model_check():
     '''
-        Checks if run id of model to be used has changed on the file that tracks it.
-        If so updates the run id and loaded model here on the api
+        Finds the latest model in Production stage registered in MLFlow.
+        If no model is in Production it sets model to None
     '''
-    global run_id
 
-    # checking if target model changed
-    with open('current_model', 'r') as f:
-        currently_set_run_id = f.readline().rstrip()
+    global model
+    available_models = mlclient.search_registered_models()
+    has_model_in_production = False
+    for _model in available_models:
+        if _model.name != model_name:
+            continue
 
-    # reloading the model if target model has changed
-    if run_id != currently_set_run_id:
-        set_model(currently_set_run_id)
+        for version in _model.latest_versions:
+            if version.current_stage == 'Production':
+                has_model_in_production = True
+                break
+        if has_model_in_production:
+            break
+    
+    if has_model_in_production:
+        model = mlflow.pyfunc.load_model(
+            model_uri=f"models:/{model_name}/Production"
+        )
+    else:
+        model = None
 
 
 @app.route('/', methods=['GET', 'POST'])
 def predict():
-    global run_id, model
+    global model
 
     model_check()
 
@@ -77,9 +68,7 @@ def predict():
         # From command line/post request json
         if request.data:
             if model is None:
-                return jsonify({"error": "No model set. Please run 'python set_model.py [run_id]' to set a model."})
-
-            print("Using model with run ID: ", run_id, flush=True)
+                return jsonify({"error": "No registered model in production yet. If already trained a model, please register it using MLFlow UI and transition it to Production."})
 
             try: 
                 data = request.get_json()
@@ -117,9 +106,7 @@ def predict():
                 return jsonify({"error": "Something is wrong with the input data. Try setting data to json type in the header. If using curl add: -H \"Content-Type: application/json\""})
 
             if model is None:
-                return render_template('index.html', prediction='', error="No model set. Please run 'python set_model.py [run_id]' to set a model.")
-
-            print("Using model with run ID: ", run_id, flush=True)
+                return render_template('index.html', prediction='', error="No registered model in production yet. If already trained a model, please register it using MLFlow UI and transition it to Production.")
 
             if request.form.get('input') == '':
                 return render_template('index.html', prediction='', error="No input data provided")

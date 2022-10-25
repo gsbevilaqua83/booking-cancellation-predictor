@@ -2,6 +2,7 @@ import os
 import warnings
 import sys
 from tqdm import tqdm
+import argparse
 
 import pandas as pd
 import numpy as np
@@ -137,46 +138,63 @@ def eval_metrics(actual, pred):
 
 if __name__ == "__main__":
     mlflow.set_tracking_uri("sqlite:///mlflow.db")
-    
+
     # training parameters
-    iterations = int(sys.argv[1]) if len(sys.argv) > 1 else 100
-    data_split_seed = int(sys.argv[2]) if len(sys.argv) > 2 else 42
-    update_current_model_to_this = bool(sys.argv[3]) if len(sys.argv) > 3 else False
+    cli=argparse.ArgumentParser()
+    cli.add_argument(
+        "--iterations",  # name on the cli - drop the `--` for positional/required parameters
+        nargs="*",  # 0 or more values expected => creates a list
+        type=int,
+        default=[100],  # default if nothing is provided
+    )
+    cli.add_argument(
+        "--depth",
+        nargs="*",
+        type=int,  # any type/callable can be used here
+        default=[None],
+    )
+    cli.add_argument(
+        "--random_strength",
+        nargs="*",
+        type=float,  # any type/callable can be used here
+        default=[None],
+    )
+    cli.add_argument(
+        "--data_split_seed",
+        nargs=1,
+        type=int,  # any type/callable can be used here
+        default=42,
+    )
+    # parse the command line
+    args = cli.parse_args()
 
     # gathering and processing data
     X, y = preprocess()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.30, random_state=data_split_seed)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.30, random_state=args.data_split_seed)
 
-    with mlflow.start_run() as run:
-        cat = CatBoostClassifier(iterations=iterations, verbose=False)
-        cat.fit(X_train, y_train)
+    for iter in tqdm(args.iterations):
+        for depth in args.depth:
+            for rs in args.random_strength:
+                with mlflow.start_run() as run:
+                    cat = CatBoostClassifier(iterations=iter, random_strength=rs, depth=depth, verbose=False)
+                    cat.fit(X_train, y_train)
 
-        y_pred = cat.predict(X_test)
+                    y_pred = cat.predict(X_test)
 
-        (acc, recall, prec, f1, roc_auc) = eval_metrics(y_test, y_pred)
+                    (acc, recall, prec, f1, roc_auc) = eval_metrics(y_test, y_pred)
 
-        mlflow.log_param("iterations", iterations)
-        mlflow.log_param("data_split_seed", data_split_seed)
-        mlflow.log_metric("acc", acc)
-        mlflow.log_metric("recall", recall)
-        mlflow.log_metric("prec", prec)
-        mlflow.log_metric("f1", f1)
-        mlflow.log_metric("roc_auc", roc_auc)
+                    mlflow.log_param("iterations", iter)
+                    mlflow.log_param("depth", depth)
+                    mlflow.log_param("random_strength", rs)
+                    mlflow.log_param("data_split_seed", args.data_split_seed)
+                    mlflow.log_metric("acc", acc)
+                    mlflow.log_metric("recall", recall)
+                    mlflow.log_metric("prec", prec)
+                    mlflow.log_metric("f1", f1)
+                    mlflow.log_metric("roc_auc", roc_auc)
 
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+                    tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
-        mlflow.sklearn.log_model(cat, "model")
+                    mlflow.sklearn.log_model(cat, "model")
 
-    print("Run ID: ", run.info.run_id)
-    # Setting current run as the model used by the api
-    # if required on input(update_current_model_to_this) or if no model is already set to be used
-    try:
-        empty_tracking_file = os.stat('current_model').st_size == 0
-    except FileNotFoundError: # file does not exist
-        f = open('current_model', 'w') # creates file
-        f.close() # and closes it
-        empty_tracking_file = True # since it was just created it is empty
-        
-    if update_current_model_to_this or empty_tracking_file:
-        with open('current_model', 'w') as f:
-            f.write(run.info.run_id)
+                    print("Run ID: ", run.info.run_id)
