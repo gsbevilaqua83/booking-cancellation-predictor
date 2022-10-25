@@ -16,7 +16,10 @@ model_name = "booking_cancellation-cat_boost_classifier"
 # checking and creating model in mlflow
 mlclient = mlflow.MlflowClient()
 if model_name not in set([model.name for model in mlclient.list_registered_models()]):
-    mlclient.create_registered_model(model_name)
+    try: # needed to deal with gunicorn workers concurrency
+        mlclient.create_registered_model(model_name)
+    except Exception:
+        pass
 
 model = None
 
