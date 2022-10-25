@@ -112,7 +112,7 @@ def preprocess():
 
     return X, y
 
-def eval_metrics(actual, pred):
+def eval_metrics(actual, pred, pred_proba):
     '''
         Evaluates accuracy, recall, precision, f1 score and roc for the
         given ground truth over what was predicted by the model
@@ -132,7 +132,7 @@ def eval_metrics(actual, pred):
     recall = recall_score(actual, pred)
     prec = precision_score(actual, pred)
     f1 = f1_score(actual, pred)
-    roc_auc = roc_auc_score(actual, pred)
+    roc_auc = roc_auc_score(actual, pred_proba[:, 1]) # roc_auc_score takes only the probability of the greatest label
     return acc, recall, prec, f1, roc_auc
 
 
@@ -180,8 +180,9 @@ if __name__ == "__main__":
                     cat.fit(X_train, y_train)
 
                     y_pred = cat.predict(X_test)
+                    y_pred_proba = cat.predict_proba(X_test)
 
-                    (acc, recall, prec, f1, roc_auc) = eval_metrics(y_test, y_pred)
+                    (acc, recall, prec, f1, roc_auc) = eval_metrics(y_test, y_pred, y_pred_proba)
 
                     mlflow.log_param("iterations", iter)
                     mlflow.log_param("depth", depth)
